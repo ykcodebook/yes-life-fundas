@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import RequestEditorCard from '../components/auth/RequestEditorCard';
+import { getUserFromCookies } from '../lib/supabase/server';
+
+const user = await getUserFromCookies(Astro.cookies);
+---
+
+<BaseLayout
+  title="Apply to Become an Editor | Yes Life Fundas"
+  description="Join the editorial team of Yes Life Fundas and publish high-quality essays on life, technology, focus, and mindset."
+  noindex={true}
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <RequestEditorCard currentUser={user?.profile || null} client:load />
+  </div>
+</BaseLayout>

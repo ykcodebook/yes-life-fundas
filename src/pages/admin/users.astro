@@ -1,0 +1,45 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import UserManager from '../../components/admin/UserManager';
+import { createServerSupabaseClient, getUserFromCookies } from '../../lib/supabase/server';
+
+const user = await getUserFromCookies(Astro.cookies);
+
+// Strict access guard: only Master Admin can access User Management
+if (!user || user.profile?.role !== 'admin') {
+  return Astro.redirect('/admin/articles');
+}
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// 1. Fetch all user profiles
+const { data: profiles } = await client
+  .from('profiles')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+// 2. Fetch editor requests with applicant user details
+const { data: requests } = await client
+  .from('editor_requests')
+  .select('*, user:profiles!user_id(*)')
+  .order('created_at', { ascending: false });
+---
+
+<AdminLayout title="User Roles & Editor Approvals | Yes Life Fundas Studio">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 font-sans">
+        User Roles & Editor Approvals
+      </h1>
+      <p class="text-xs text-zinc-500 font-sans mt-1">
+        Review applicant pitches to become editors and manage roles across the platform.
+      </p>
+    </div>
+
+    <UserManager
+      initialProfiles={profiles || []}
+      initialRequests={requests || []}
+      client:load
+    />
+  </div>
+</AdminLayout>

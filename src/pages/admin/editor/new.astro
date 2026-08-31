@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleEditor from '../../../components/editor/ArticleEditor.tsx';
+import { createServerSupabaseClient, getUserFromCookies } from '../../../lib/supabase/server';
+
+const userWithProfile = await getUserFromCookies(Astro.cookies);
+if (!userWithProfile) {
+  return Astro.redirect(`/auth/login?redirect=/admin/editor/new`);
+}
+
+if (userWithProfile.profile?.role === 'reader') {
+  return Astro.redirect('/apply-editor');
+}
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch categories & tags
+const [{ data: categories }, { data: tags }] = await Promise.all([
+  client.from('categories').select('*').order('name'),
+  client.from('tags').select('*').order('name'),
+]);
+---
+
+<BaseLayout title="Compose New Article | Studio" noindex={true}>
+  <ArticleEditor
+    client:only="react"
+    categories={categories || []}
+    availableTags={tags || []}
+  />
+</BaseLayout>

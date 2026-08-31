@@ -1,0 +1,17 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ArticlesTable from '../../components/admin/ArticlesTable.tsx';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch articles and categories
+const [{ data: articles }, { data: categories }] = await Promise.all([
+  client.from('articles').select('*, category:categories(*), author:profiles(*)').order('updated_at', { ascending: false }),
+  client.from('categories').select('*').order('name'),
+]);
+---
+
+<AdminLayout title="Manage Articles | Studio">
+  <ArticlesTable client:load articles={articles || []} categories={categories || []} />
+</AdminLayout>

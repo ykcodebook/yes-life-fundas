@@ -1,0 +1,26 @@
+---
+import type { Article } from '../../lib/supabase/types';
+import ArticleCard from './ArticleCard.astro';
+
+interface Props {
+  articles: Article[];
+}
+
+const { articles } = Astro.props;
+if (!articles || articles.length === 0) return null;
+---
+
+<section class="mt-14 pt-10 border-t border-zinc-200 dark:border-zinc-800 font-sans">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-zinc-50">Related Stories</h3>
+      <p class="text-xs text-zinc-500 mt-0.5">Continue reading from this category</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {articles.map((article) => (
+      <ArticleCard article={article} />
+    ))}
+  </div>
+</section>

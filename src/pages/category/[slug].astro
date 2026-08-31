@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/article/ArticleCard.astro';
+import Breadcrumbs from '../../components/core/Breadcrumbs.astro';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+
+const { slug } = Astro.params;
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch Category
+const { data: category } = await client
+  .from('categories')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!category) {
+  return new Response(null, { status: 404, statusText: 'Category not found' });
+}
+
+// Fetch published articles in this category
+const { data: articles } = await client
+  .from('articles')
+  .select('*, author:profiles(*), category:categories(*)')
+  .eq('category_id', category.id)
+  .eq('status', 'published')
+  .order('published_at', { ascending: false });
+
+const breadcrumbItems = [
+  { name: 'Home', url: '/' },
+  { name: 'Categories', url: '/' },
+  { name: category.name, url: `/category/${category.slug}` },
+];
+---
+
+<BaseLayout
+  title={`${category.name} Articles | Yes Life Fundas`}
+  description={category.description || `Browse articles and deep-dives in ${category.name}`}
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 font-sans">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    {/* Category Header */}
+    <div class="border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span
+          class="w-3.5 h-3.5 rounded-full"
+          style={{ backgroundColor: category.color || '#3b82f6' }}
+        />
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">
+          {category.name}
+        </h1>
+      </div>
+      {category.description && (
+        <p class="text-sm font-serif text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mt-1">
+          {category.description}
+        </p>
+      )}
+    </div>
+
+    {/* Articles Grid */}
+    {(!articles || articles.length === 0) ? (
+      <div class="py-16 text-center text-zinc-400 bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8">
+        No articles published in this category yet.
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {articles.map((article) => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>

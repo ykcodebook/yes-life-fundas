@@ -1,0 +1,33 @@
+---
+import type { HeadingItem } from '../../lib/tiptap/json-to-html';
+
+interface Props {
+  headings: HeadingItem[];
+}
+
+const { headings } = Astro.props;
+---
+
+{headings && headings.length > 1 && (
+  <nav aria-label="Table of contents" class="bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 my-8 font-sans">
+    <div class="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+      <svg class="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+      </svg>
+      <span>Table of Contents</span>
+    </div>
+
+    <ul class="space-y-1.5 text-xs">
+      {headings.map((heading) => (
+        <li class={`${heading.level === 3 ? 'pl-3' : heading.level === 4 ? 'pl-6' : ''}`}>
+          <a
+            href={`#${heading.id}`}
+            class="text-zinc-600 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center py-0.5 leading-normal"
+          >
+            <span class="truncate">{heading.text}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

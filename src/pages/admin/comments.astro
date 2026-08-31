@@ -1,0 +1,20 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import CommentModeration from '../../components/admin/CommentModeration.tsx';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+const [{ data: comments }, { data: reports }] = await Promise.all([
+  client.from('comments').select('*, user:profiles(*)').order('created_at', { ascending: false }).limit(50),
+  client.from('comment_reports').select('*, comment:comments(*), reporter:profiles(*)').order('created_at', { ascending: false }).limit(50),
+]);
+---
+
+<AdminLayout title="Comment Moderation | Studio">
+  <CommentModeration
+    client:load
+    initialComments={comments || []}
+    initialReports={reports || []}
+  />
+</AdminLayout>

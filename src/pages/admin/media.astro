@@ -1,0 +1,16 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import MediaLibrary from '../../components/admin/MediaLibrary.tsx';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+const { data: media } = await client
+  .from('media')
+  .select('*, uploader:profiles(*)')
+  .order('created_at', { ascending: false });
+---
+
+<AdminLayout title="Media Library | Studio">
+  <MediaLibrary client:load initialMedia={media || []} />
+</AdminLayout>

@@ -1,0 +1,48 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { createServerSupabaseClient, getUserFromCookies } from '../../lib/supabase/server';
+import { tiptapJsonToHtml } from '../../lib/tiptap/json-to-html';
+
+const { id } = Astro.params;
+
+const userWithProfile = await getUserFromCookies(Astro.cookies);
+if (!userWithProfile) {
+  return Astro.redirect(`/auth/login?redirect=/preview/${id}`);
+}
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch article draft by ID
+const { data: article } = await client
+  .from('articles')
+  .select('*, author:profiles(*), category:categories(*)')
+  .eq('id', id)
+  .single();
+
+if (!article) {
+  return new Response(null, { status: 404, statusText: 'Draft not found' });
+}
+
+// Fetch tags
+const { data: articleTags } = await client
+  .from('article_tags')
+  .select('tag:tags(*)')
+  .eq('article_id', id);
+
+article.tags = articleTags?.map((at: any) => at.tag).filter(Boolean) || [];
+
+// Render draft content using same universal renderer
+const contentToRender = article.draft_content || article.published_content;
+const htmlContent = tiptapJsonToHtml(contentToRender);
+---
+
+<div class="sticky top-0 z-50 bg-amber-500 text-zinc-950 px-4 py-2 text-center text-xs font-bold font-sans shadow-md flex items-center justify-center gap-4">
+  <span>⚠️ Private Draft Preview Mode — Not Indexable by Search Engines</span>
+  <a href={`/admin/editor/${article.id}`} class="underline font-extrabold hover:text-white">
+    Return to Editor
+  </a>
+</div>
+
+<ArticleLayout article={article}>
+  <div class="prose prose-zinc dark:prose-invert max-w-none font-serif text-lg leading-relaxed" set:html={htmlContent} />
+</ArticleLayout>

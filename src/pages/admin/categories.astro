@@ -1,0 +1,20 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import CategoryTagManager from '../../components/admin/CategoryTagManager.tsx';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+const [{ data: categories }, { data: tags }] = await Promise.all([
+  client.from('categories').select('*').order('name'),
+  client.from('tags').select('*').order('name'),
+]);
+---
+
+<AdminLayout title="Categories & Tags | Studio">
+  <CategoryTagManager
+    client:load
+    initialCategories={categories || []}
+    initialTags={tags || []}
+  />
+</AdminLayout>

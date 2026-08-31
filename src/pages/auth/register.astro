@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import RegisterForm from '../../components/auth/RegisterForm.tsx';
+
+const redirectUrl = Astro.url.searchParams.get('redirect') || '/admin';
+---
+
+<BaseLayout title="Create an Account | Yes Life Fundas" noindex={true}>
+  <div class="min-h-[75vh] flex items-center justify-center px-4 py-12">
+    <RegisterForm client:load redirectUrl={redirectUrl} />
+  </div>
+</BaseLayout>

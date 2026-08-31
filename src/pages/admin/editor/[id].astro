@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleEditor from '../../../components/editor/ArticleEditor.tsx';
+import { createServerSupabaseClient, getUserFromCookies } from '../../../lib/supabase/server';
+
+const { id } = Astro.params;
+
+const userWithProfile = await getUserFromCookies(Astro.cookies);
+if (!userWithProfile) {
+  return Astro.redirect(`/auth/login?redirect=/admin/editor/${id}`);
+}
+
+if (userWithProfile.profile?.role === 'reader') {
+  return Astro.redirect('/apply-editor');
+}
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch article with tags, and taxonomies
+const [{ data: article }, { data: articleTags }, { data: categories }, { data: tags }] = await Promise.all([
+  client.from('articles').select('*, category:categories(*), author:profiles(*)').eq('id', id).single(),
+  client.from('article_tags').select('tag:tags(*)').eq('article_id', id),
+  client.from('categories').select('*').order('name'),
+  client.from('tags').select('*').order('name'),
+]);
+
+if (!article) {
+  return Astro.redirect('/admin/articles');
+}
+
+const formattedArticle = {
+  ...article,
+  tags: articleTags?.map((at: any) => at.tag).filter(Boolean) || [],
+};
+---
+
+<BaseLayout title={`Editing: ${article.title || 'Draft'} | Studio`} noindex={true}>
+  <ArticleEditor
+    client:only="react"
+    initialArticle={formattedArticle}
+    categories={categories || []}
+    availableTags={tags || []}
+  />
+</BaseLayout>

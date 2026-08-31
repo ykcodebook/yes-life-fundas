@@ -1,0 +1,71 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { createServerSupabaseClient } from '../../lib/supabase/server';
+import { tiptapJsonToHtml } from '../../lib/tiptap/json-to-html';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return new Response(null, { status: 404, statusText: 'Not found' });
+}
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// 1. Fetch published article by slug
+const { data: article, error } = await client
+  .from('articles')
+  .select('*, author:profiles(*), category:categories(*)')
+  .eq('slug', slug)
+  .eq('status', 'published')
+  .single();
+
+// 2. If article not found, check if a 301 redirect exists
+if (!article) {
+  const { data: redirectRecord } = await client
+    .from('article_slug_redirects')
+    .select('new_slug')
+    .eq('old_slug', slug)
+    .single();
+
+  if (redirectRecord?.new_slug) {
+    return Astro.redirect(`/articles/${redirectRecord.new_slug}`, 301);
+  }
+
+  return new Response(null, { status: 404, statusText: 'Article Not Found' });
+}
+
+// 3. Fetch tags for this article
+const { data: articleTags } = await client
+  .from('article_tags')
+  .select('tag:tags(*)')
+  .eq('article_id', article.id);
+
+const tags = articleTags?.map((at: any) => at.tag).filter(Boolean) || [];
+article.tags = tags;
+
+// 4. Fetch related articles in the same category
+let relatedArticles: any[] = [];
+if (article.category_id) {
+  const { data: related } = await client
+    .from('articles')
+    .select('*, author:profiles(*), category:categories(*)')
+    .eq('category_id', article.category_id)
+    .eq('status', 'published')
+    .neq('id', article.id)
+    .limit(3);
+
+  relatedArticles = related || [];
+}
+
+// 5. Render Canonical Tiptap ProseMirror JSON to Semantic HTML on the server
+const contentToRender = article.published_content || article.draft_content;
+const htmlContent = tiptapJsonToHtml(contentToRender);
+
+// Increment view count asynchronously
+client.rpc('increment_view_count', { article_id: article.id }).then(() => {}).catch(() => {});
+---
+
+<ArticleLayout article={article} relatedArticles={relatedArticles}>
+  {/* Server-Side Pre-rendered Article HTML (SEO first, instant crawlable response) */}
+  <div class="prose prose-zinc dark:prose-invert max-w-none font-serif text-lg leading-relaxed" set:html={htmlContent} />
+</ArticleLayout>
