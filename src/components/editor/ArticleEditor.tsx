@@ -419,7 +419,7 @@ export const ArticleEditor: React.FC<ArticleEditorProps> = ({
       {/* Main Studio Body */}
       <main className="flex-1 flex justify-center py-6 sm:py-10 px-3 sm:px-6">
         <div className="w-full max-w-4xl">
-          {isPreviewMode ? (
+          {isPreviewMode && (
             /* 100% Production Article Preview View */
             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-14 shadow-lg animate-in fade-in">
               <div className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-2">
@@ -454,63 +454,67 @@ export const ArticleEditor: React.FC<ArticleEditorProps> = ({
               {/* Exact Universal Content Renderer */}
               <ArticleRenderer content={currentContent} />
             </div>
-          ) : (
-            /* Visual Authoring Canvas */
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden relative">
-              {/* Sticky Formatting Toolbar */}
-              <EditorToolbar
-                editor={editor}
-                onOpenMediaLibrary={() => setIsMediaPickerOpen(true)}
+          )}
+
+          {/* Visual Authoring Canvas - preserved in DOM to avoid Tippy/ProseMirror unmount collisions */}
+          <div
+            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden relative ${
+              isPreviewMode ? 'hidden' : 'block'
+            }`}
+          >
+            {/* Sticky Formatting Toolbar */}
+            <EditorToolbar
+              editor={editor}
+              onOpenMediaLibrary={() => setIsMediaPickerOpen(true)}
+            />
+
+            {/* Inline Interactive Image Bubble Toolbar for active image resizing & alignment */}
+            <ImageBubbleMenu editor={editor} disabled={isPreviewMode} />
+
+            {/* Article Header Form in Canvas */}
+            <div className="px-4 sm:px-12 pt-8 pb-4 space-y-4 border-b border-zinc-100 dark:border-zinc-800/80">
+              {/* Title Input */}
+              <input
+                type="text"
+                value={title}
+                onChange={handleTitleChange}
+                placeholder="Article Title..."
+                className="w-full text-3xl sm:text-4xl font-extrabold font-sans tracking-tight text-zinc-950 dark:text-zinc-50 placeholder-zinc-400 border-none outline-none p-0 bg-transparent leading-tight"
               />
 
-              {/* Inline Interactive Image Bubble Toolbar for active image resizing & alignment */}
-              <ImageBubbleMenu editor={editor} />
+              {/* Subtitle Input */}
+              <input
+                type="text"
+                value={subtitle}
+                onChange={(e) => {
+                  setSubtitle(e.target.value);
+                  setSaveStatus('unsaved');
+                  triggerDebouncedAutosave();
+                }}
+                placeholder="Add a captivating subtitle (optional)..."
+                className="w-full text-lg sm:text-xl font-serif text-zinc-600 dark:text-zinc-300 placeholder-zinc-400 border-none outline-none p-0 bg-transparent"
+              />
 
-              {/* Article Header Form in Canvas */}
-              <div className="px-4 sm:px-12 pt-8 pb-4 space-y-4 border-b border-zinc-100 dark:border-zinc-800/80">
-                {/* Title Input */}
-                <input
-                  type="text"
-                  value={title}
-                  onChange={handleTitleChange}
-                  placeholder="Article Title..."
-                  className="w-full text-3xl sm:text-4xl font-extrabold font-sans tracking-tight text-zinc-950 dark:text-zinc-50 placeholder-zinc-400 border-none outline-none p-0 bg-transparent leading-tight"
-                />
-
-                {/* Subtitle Input */}
-                <input
-                  type="text"
-                  value={subtitle}
-                  onChange={(e) => {
-                    setSubtitle(e.target.value);
-                    setSaveStatus('unsaved');
-                    triggerDebouncedAutosave();
-                  }}
-                  placeholder="Add a captivating subtitle (optional)..."
-                  className="w-full text-lg sm:text-xl font-serif text-zinc-600 dark:text-zinc-300 placeholder-zinc-400 border-none outline-none p-0 bg-transparent"
-                />
-
-                {/* Cover Image Preview in Editor */}
-                {coverImage && (
-                  <div className="relative group rounded-xl overflow-hidden my-4 border border-zinc-200 dark:border-zinc-700">
-                    <img src={coverImage} alt="Cover Preview" className="w-full max-h-72 object-cover" />
-                    <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => setIsMetadataDrawerOpen(true)}
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900/80 text-white text-xs font-semibold backdrop-blur-xs"
-                      >
-                        Edit Cover
-                      </button>
-                    </div>
+              {/* Cover Image Preview in Editor */}
+              {coverImage && (
+                <div className="relative group rounded-xl overflow-hidden my-4 border border-zinc-200 dark:border-zinc-700">
+                  <img src={coverImage} alt="Cover Preview" className="w-full max-h-72 object-cover" />
+                  <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => setIsMetadataDrawerOpen(true)}
+                      className="px-2.5 py-1 rounded-lg bg-zinc-900/80 text-white text-xs font-semibold backdrop-blur-xs"
+                    >
+                      Edit Cover
+                    </button>
                   </div>
-                )}
-              </div>
-
-              {/* Tiptap Visual Rich Editor Surface */}
-              <EditorContent editor={editor} />
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Tiptap Visual Rich Editor Surface */}
+            <EditorContent editor={editor} />
+          </div>
         </div>
       </main>
 
