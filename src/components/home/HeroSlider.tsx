@@ -93,7 +93,8 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ featuredArticles }) => {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-zinc-950 text-white min-h-[460px] sm:min-h-[560px] md:min-h-[640px] flex items-end font-sans group select-none"
+      className="relative w-full overflow-hidden bg-zinc-950 text-white min-h-[460px] sm:min-h-[560px] md:min-h-[640px] flex items-end font-sans group select-none article-card article-protected"
+      data-protected="true"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >

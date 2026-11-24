@@ -51,7 +51,7 @@ const breadcrumbItems = [
   {/* Schema.org BlogPosting / Article structured data */}
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <article class="article-protected select-none max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12" data-protected="true">
     {/* Breadcrumbs */}
     <Breadcrumbs items={breadcrumbItems} />
 
@@ -143,7 +143,7 @@ const breadcrumbItems = [
     <TableOfContents headings={headings} />
 
     {/* Slot for Main Article HTML Content */}
-    <div class="article-body font-serif">
+    <div class="article-body font-serif select-none" data-protected="true">
       <slot />
     </div>
 

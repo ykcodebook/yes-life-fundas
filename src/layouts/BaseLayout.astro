@@ -100,5 +100,78 @@ const userProfile = userWithProfile?.profile || null;
     </main>
 
     <Footer />
+
+    {/* Content Protection Script: Disable text select and copy on articles and cards */}
+    <script is:inline>
+      (function() {
+        function isProtectedTarget(target) {
+          if (!target || !(target instanceof Element)) return false;
+          // Never restrict interactive form controls, editable content, discussions, or editor canvas
+          if (target.closest('input, textarea, [contenteditable="true"], .select-text, #discussion, .editor-canvas')) {
+            return false;
+          }
+          // Only restrict elements marked as protected, article cards, or article content
+          return !!target.closest('.article-protected, .article-card, .article-body, [data-protected="true"]');
+        }
+
+        // 1. Prevent copy event on protected elements
+        document.addEventListener('copy', function(e) {
+          const activeEl = document.activeElement;
+          if (activeEl && activeEl.closest('input, textarea, [contenteditable="true"], .select-text, #discussion, .editor-canvas')) {
+            return;
+          }
+          const selection = window.getSelection();
+          if (!selection || selection.rangeCount === 0) return;
+          const anchorNode = selection.anchorNode;
+          const anchorEl = anchorNode instanceof Element ? anchorNode : anchorNode?.parentElement;
+          if (isProtectedTarget(anchorEl) || isProtectedTarget(e.target)) {
+            e.preventDefault();
+          }
+        }, true);
+
+        // 2. Prevent cut event on protected elements
+        document.addEventListener('cut', function(e) {
+          if (isProtectedTarget(e.target)) {
+            e.preventDefault();
+          }
+        }, true);
+
+        // 3. Prevent text selection dragging start on protected elements
+        document.addEventListener('selectstart', function(e) {
+          if (isProtectedTarget(e.target)) {
+            e.preventDefault();
+          }
+        }, true);
+
+        // 4. Prevent context menu on protected elements, preserving right-click for links and buttons
+        document.addEventListener('contextmenu', function(e) {
+          if (isProtectedTarget(e.target)) {
+            if (e.target.closest('a, button')) {
+              return; // Allow context menu on links (e.g., Open link in new tab)
+            }
+            e.preventDefault();
+          }
+        }, true);
+
+        // 5. Intercept Ctrl+C / Cmd+C / Ctrl+A / Cmd+A shortcuts on protected content
+        document.addEventListener('keydown', function(e) {
+          const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+          if (!isCmdOrCtrl) return;
+          const key = e.key.toLowerCase();
+          if (key === 'c' || key === 'a' || key === 'x') {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.closest('input, textarea, [contenteditable="true"], .select-text, #discussion, .editor-canvas')) {
+              return;
+            }
+            const selection = window.getSelection();
+            const anchorNode = selection?.anchorNode;
+            const anchorEl = anchorNode instanceof Element ? anchorNode : anchorNode?.parentElement;
+            if (isProtectedTarget(anchorEl) || isProtectedTarget(e.target)) {
+              e.preventDefault();
+            }
+          }
+        }, true);
+      })();
+    </script>
   </body>
 </html>

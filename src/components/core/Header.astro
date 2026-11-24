@@ -217,7 +217,7 @@ const navLinks = [
         ) : (
           <a
             href="/auth/login"
-            class="inline-flex items-center px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
+            class="inline-flex text-nowrap items-center px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
           >
             Sign In
           </a>
@@ -285,7 +285,10 @@ const navLinks = [
             {isEditorOrAdmin ? "Admin Studio" : "Reader Profile"}
           </a>
         ) : (
-          <a href="/auth/login" class="text-xs font-bold text-brand-600">
+          <a
+            href="/auth/login"
+            class="text-xs text-nowrap font-bold text-brand-600"
+          >
             Sign In
           </a>
         )

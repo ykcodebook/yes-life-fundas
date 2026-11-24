@@ -15,7 +15,7 @@ const { data: category } = await client
   .single();
 
 if (!category) {
-  return new Response(null, { status: 404, statusText: 'Category not found' });
+  return Astro.rewrite('/404');
 }
 
 // Fetch published articles in this category

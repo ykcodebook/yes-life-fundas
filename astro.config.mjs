@@ -9,6 +9,11 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone',
   }),
+  redirects: {
+    '/blog': '/',
+    '/index.php': '/',
+    '/index.php/blog': '/',
+  },
   integrations: [
     react(),
     tailwind({

@@ -20,7 +20,7 @@ const { data: article } = await client
   .single();
 
 if (!article) {
-  return new Response(null, { status: 404, statusText: 'Draft not found' });
+  return Astro.rewrite('/404');
 }
 
 // Fetch tags

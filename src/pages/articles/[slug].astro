@@ -6,7 +6,7 @@ import { tiptapJsonToHtml } from '../../lib/tiptap/json-to-html';
 const { slug } = Astro.params;
 
 if (!slug) {
-  return new Response(null, { status: 404, statusText: 'Not found' });
+  return Astro.rewrite('/404');
 }
 
 const client = createServerSupabaseClient(Astro.cookies);
@@ -31,7 +31,7 @@ if (!article) {
     return Astro.redirect(`/articles/${redirectRecord.new_slug}`, 301);
   }
 
-  return new Response(null, { status: 404, statusText: 'Article Not Found' });
+  return Astro.rewrite('/404');
 }
 
 // 3. Fetch tags for this article
@@ -67,5 +67,5 @@ client.rpc('increment_view_count', { article_id: article.id }).then(() => {}).ca
 
 <ArticleLayout article={article} relatedArticles={relatedArticles}>
   {/* Server-Side Pre-rendered Article HTML (SEO first, instant crawlable response) */}
-  <div class="prose prose-zinc dark:prose-invert max-w-none font-serif text-lg leading-relaxed" set:html={htmlContent} />
+  <div class="prose prose-zinc dark:prose-invert max-w-none font-serif text-lg leading-relaxed article-body select-none" data-protected="true" set:html={htmlContent} />
 </ArticleLayout>

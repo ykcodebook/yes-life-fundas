@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { createServerSupabaseClient } from '../lib/supabase/server';
+
+// Ensure standard HTTP 404 status code (no soft 404)
+Astro.response.status = 404;
+
+const client = createServerSupabaseClient(Astro.cookies);
+
+// Fetch a few recommended articles to help lost visitors discover relevant content
+const { data: recommendedArticles } = await client
+  .from('articles')
+  .select('id, title, slug, excerpt, reading_time, published_at, category:categories(*)')
+  .eq('status', 'published')
+  .order('published_at', { ascending: false })
+  .limit(3);
+
+const popularCategories = [
+  { name: 'Holistic Healing', href: '/category/holistic-healing' },
+  { name: 'Life & Wisdom', href: '/category/life-wisdom' },
+  { name: 'Mindset & Philosophy', href: '/category/mindset-philosophy' },
+  { name: 'Intentional Living', href: '/category/intentional-living' },
+  { name: 'Emotional Wellness', href: '/category/emotional-wellness' },
+];
+---
+
+<BaseLayout
+  title="404 — Page Not Found | Yes Life Fundas"
+  description="The page you are looking for does not exist or may have been moved."
+  noindex={true}
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 font-sans text-center">
+    {/* 404 Header & Visual Indicator */}
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800/60 text-brand-600 dark:text-brand-400 text-xs font-semibold uppercase tracking-wider mb-6">
+      <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+      404 Error: Page Not Found
+    </div>
+
+    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-zinc-950 dark:text-zinc-50 font-serif mb-4">
+      Lost in the Flow?
+    </h1>
+
+    <p class="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed mb-10 font-serif">
+      The page or article you are searching for might have been moved, renamed, or is temporarily unavailable. Let's get you back on track.
+    </p>
+
+    {/* Search Box to Find Articles */}
+    <div class="max-w-lg mx-auto mb-10">
+      <form action="/search" method="GET" class="relative flex items-center shadow-sm rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus-within:ring-2 focus-within:ring-brand-500 transition-all">
+        <div class="pl-4 text-zinc-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="search"
+          name="q"
+          placeholder="Search articles, philosophy, healing..."
+          class="w-full px-3 py-3.5 text-sm bg-transparent border-0 focus:outline-none focus:ring-0 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400"
+          required
+        />
+        <button
+          type="submit"
+          class="mr-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition-colors"
+        >
+          Search
+        </button>
+      </form>
+    </div>
+
+    {/* Quick Action Navigation */}
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-12">
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-950 dark:bg-zinc-50 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-sm font-bold shadow-sm transition-all active:scale-95"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span>Back to Homepage</span>
+      </a>
+
+      <a
+        href="/search"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-sm font-bold transition-all"
+      >
+        <span>Browse All Articles</span>
+      </a>
+    </div>
+
+    {/* Browse by Categories */}
+    <div class="pt-8 border-t border-zinc-200/80 dark:border-zinc-800/80 max-w-2xl mx-auto">
+      <p class="text-xs uppercase tracking-wider font-semibold text-zinc-400 dark:text-zinc-500 mb-4">
+        Popular Topics & Categories
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        {popularCategories.map((cat) => (
+          <a
+            href={cat.href}
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 text-zinc-700 dark:text-zinc-300 transition-colors shadow-2xs"
+          >
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* Recommended Reads (if available) */}
+    {recommendedArticles && recommendedArticles.length > 0 && (
+      <div class="mt-16 pt-10 border-t border-zinc-200/80 dark:border-zinc-800/80 text-left">
+        <h2 class="text-lg font-bold text-zinc-950 dark:text-zinc-50 mb-6 font-serif">
+          Recent Articles You Might Enjoy
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {recommendedArticles.map((article: any) => (
+            <a
+              href={`/articles/${article.slug}`}
+              class="group block p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 hover:border-brand-500/50 transition-all shadow-2xs"
+            >
+              <div class="text-[10px] uppercase font-bold text-brand-600 dark:text-brand-400 mb-1">
+                {article.category?.name || 'Article'}
+              </div>
+              <h3 class="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 line-clamp-2 mb-2 font-serif">
+                {article.title}
+              </h3>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+                {article.excerpt || 'Read the full story on Yes Life Fundas.'}
+              </p>
+              <div class="mt-3 text-[11px] text-zinc-400 flex items-center justify-between">
+                <span>{article.reading_time || 3} min read</span>
+                <span class="text-brand-600 group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+</BaseLayout>

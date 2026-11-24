@@ -15,7 +15,7 @@ const { data: tag } = await client
   .single();
 
 if (!tag) {
-  return new Response(null, { status: 404, statusText: 'Tag not found' });
+  return Astro.rewrite('/404');
 }
 
 // Fetch articles associated with this tag

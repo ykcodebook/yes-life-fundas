@@ -15,7 +15,7 @@ const { data: author } = await client
   .single();
 
 if (!author) {
-  return new Response(null, { status: 404, statusText: 'Author not found' });
+  return Astro.rewrite('/404');
 }
 
 // Fetch author's published articles

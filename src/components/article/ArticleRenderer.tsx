@@ -14,7 +14,8 @@ export const ArticleRenderer: React.FC<ArticleRendererProps> = ({ content, class
 
   return (
     <div
-      className={`article-content prose prose-zinc dark:prose-invert max-w-none font-serif leading-relaxed ${className}`}
+      className={`article-content article-body article-protected select-none prose prose-zinc dark:prose-invert max-w-none font-serif leading-relaxed ${className}`}
+      data-protected="true"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
